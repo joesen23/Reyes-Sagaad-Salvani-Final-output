@@ -1,0 +1,334 @@
+using System;
+using System.Collections.Generic;
+
+namespace joese
+{
+    internal class Event_Scheduling
+    {
+        class Product
+        {
+            public int ProductID { get; set; }
+            public string ProductName { get; set; }
+            public int Price { get; set; }
+
+            public Product(int id, string name, int price)
+            {
+                ProductID = id;
+                ProductName = name;
+                Price = price;
+            }
+        }
+
+        class Program
+        {
+            static Product[] products = new Product[100];
+            static int currentIndex = 0;
+
+            static List<(Product product, int quantity)> cart = new List<(Product, int)>();
+            static int totalCost = 0;
+
+            public static void Main(string[] args)
+            {
+                bool exit = false;
+
+                while (!exit)
+                {
+                    Console.Clear();
+                    Console.WriteLine("E-Commerce Shopping Cart");
+                    Console.WriteLine("1. Add Product");
+                    Console.WriteLine("2. View Products");
+                    Console.WriteLine("3. Update Product");
+                    Console.WriteLine("4. Add to Cart");
+                    Console.WriteLine("5. View Cart");
+                    Console.WriteLine("6. Checkout");
+                    Console.WriteLine("7. Exit");
+                    Console.Write("Choose an option: ");
+
+                    string input = Console.ReadLine();
+
+                    if (input == "1")
+                    {
+                        AddProduct();
+                    }
+                    else if (input == "2")
+                    {
+                        ViewProducts();
+                    }
+                    else if (input == "3")
+                    {
+                        UpdateProduct();
+                    }
+                    else if (input == "4")
+                    {
+                        AddToCart();
+                    }
+                    else if (input == "5")
+                    {
+                        ViewCart();
+                    }
+                    else if (input == "6")
+                    {
+                        Checkout();
+                    }
+                    else if (input == "7")
+                    {
+                        exit = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid option. Press any key to try again.");
+                        Console.ReadKey();
+                    }
+                }
+            }
+            static void AddProduct()
+            {
+                Console.Write("Enter Product ID: ");
+                int id;
+                while (!int.TryParse(Console.ReadLine(), out id))
+                {
+                    Console.WriteLine("Error: Please enter a valid number for Product ID.");
+                    Console.Write("Enter Product ID: ");
+                }
+
+               
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    if (products[i].ProductID == id)
+                    {
+                        Console.WriteLine("Product ID already exists. Press any key to continue.");
+                        Console.ReadKey();
+                        return;
+                    }
+                }
+
+                Console.Write("Enter Product Name: ");
+                string name = Console.ReadLine();
+                while (int.TryParse(name, out _))
+                {
+                    Console.WriteLine("Product Name cannot be a number. Please enter a valid name.");
+                    Console.Write("Enter Product Name: ");
+                    name = Console.ReadLine();
+                }
+
+                
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    if (string.Compare(products[i].ProductName, name, true) == 0)
+                    {
+                        Console.WriteLine(" Product Name already exists. Press any key to continue.");
+                        Console.ReadKey();
+                        return;
+                    }
+                }
+
+                Console.Write("Enter Product Price: ");
+                int price;
+                while (!int.TryParse(Console.ReadLine(), out price))
+                {
+                    Console.WriteLine(" Please enter a valid number for Product Price.");
+                    Console.Write("Enter Product Price: ");
+                }
+
+                products[currentIndex++] = new Product(id, name, price);
+                Console.WriteLine("Product added! Press any key to continue.");
+                Console.ReadKey();
+            }
+
+
+
+            static void ViewProducts()
+            {
+                Console.WriteLine("Products List:");
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    Console.WriteLine($"ID: {products[i].ProductID}, Name: {products[i].ProductName}, Price: {products[i].Price}");
+                }
+                Console.WriteLine("Press any key to continue.");
+                Console.ReadKey();
+            }
+
+            static void UpdateProduct()
+            {
+                Console.Write("Enter Product ID to update: ");
+                if (!int.TryParse(Console.ReadLine(), out int id))
+                {
+                    Console.WriteLine("Invalid input. Press any key to continue.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    if (products[i].ProductID == id)
+                    {
+                        Console.WriteLine($"Current Name: {products[i].ProductName}");
+                        Console.Write("Enter new name : ");
+                        string newName = Console.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            products[i].ProductName = newName;
+                        }
+
+                        Console.WriteLine($"Current Price: {products[i].Price}");
+                        Console.Write("Enter new price : ");
+                        string priceInput = Console.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(priceInput) && int.TryParse(priceInput, out int newPrice))
+                        {
+                            products[i].Price = newPrice;
+                        }
+
+                        Console.WriteLine("Product updated! Press any key to continue.");
+                        Console.ReadKey();
+                        return;
+                    }
+                }
+
+                Console.WriteLine("Product not found! Press any key to continue.");
+                Console.ReadKey();
+            }
+            static void AddToCart()
+            {
+                Console.Write("Enter Product ID to add to cart: ");
+                int id;
+                while (!int.TryParse(Console.ReadLine(), out id))
+                {
+                    Console.WriteLine("Invalid Product ID. Please enter a valid number.");
+                    Console.Write("Enter Product ID to add to cart: ");
+                }
+
+                Product prod = null;
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    if (products[i].ProductID == id)
+                    {
+                        prod = products[i];
+                        break;
+                    }
+                }
+
+                if (prod == null)
+                {
+                    Console.WriteLine("Product not found! Press any key to continue.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                Console.Write("Enter quantity to add: ");
+                int quantity;
+                while (!int.TryParse(Console.ReadLine(), out quantity) || quantity <= 0)
+                {
+                    Console.WriteLine("Error: Please enter a valid positive number for quantity.");
+                    Console.Write("Enter quantity to add: ");
+                }
+
+                int indexInCart = cart.FindIndex(c => c.product.ProductID == id);
+                if (indexInCart != -1)
+                {
+                    cart[indexInCart] = (
+                        cart[indexInCart].product,
+                        cart[indexInCart].quantity + quantity
+                    );
+                    totalCost += cart[indexInCart].product.Price * quantity;
+                    Console.WriteLine($"\nProduct quantity increased in cart by {quantity}!\n");
+                }
+                else
+                {
+                    cart.Add((prod, quantity));
+                    totalCost += prod.Price * quantity;
+                    Console.WriteLine($"\n{quantity} of {prod.ProductName} added to cart!\n");
+                }
+
+                ShowAllProductsAfterAddToCart();
+            }
+
+
+
+            static void ShowAllProductsAfterAddToCart()
+            {
+                Console.WriteLine("All available products:");
+                for (int i = 0; i < currentIndex; i++)
+                {
+                    Console.WriteLine($"ID: {products[i].ProductID}, Name: {products[i].ProductName}, Price: {products[i].Price}");
+                }
+                Console.WriteLine("\nPress any key to continue or type 'checkout' to proceed to checkout.");
+
+                string input = Console.ReadLine().ToLower();
+                if (input == "checkout")
+                {
+                    Checkout();
+                }
+                else
+                {
+                    Console.WriteLine("Returning to menu. Press any key to continue.");
+                    Console.ReadKey();
+                }
+            }
+            static void ViewCart()
+            {
+                Console.WriteLine("Cart Items:");
+                if (cart.Count == 0)
+                {
+                    Console.WriteLine("Your cart is empty.");
+                }
+                else
+                {
+                    for (int i = 0; i < cart.Count; i++)
+                    {
+                        Console.WriteLine($"Product: {cart[i].product.ProductName}, Quantity: {cart[i].quantity}, Unit Price: {cart[i].product.Price}, Total: {cart[i].product.Price * cart[i].quantity}");
+                    }
+                }
+                Console.WriteLine($"Total Cost: {totalCost}");
+                Console.WriteLine("Press any key to continue.");
+                Console.ReadKey();
+            }
+
+
+
+            static void Checkout()
+            {
+                ViewCart();
+                if (cart.Count > 0)
+                {
+                    int finalCost = totalCost;
+                    Console.WriteLine($"\nFinal cost: {finalCost}");
+                    Console.Write("Do you want to proceed to payment? (yes/no): ");
+                    string proceed = Console.ReadLine().ToLower();
+                    if (proceed == "yes")
+                    {
+                        Console.Write("Enter the amount you are paying: ");
+                        if (int.TryParse(Console.ReadLine(), out int paymentAmount))
+                        {
+                            if (paymentAmount >= finalCost)
+                            {
+                                int change = paymentAmount - finalCost;
+                                Console.WriteLine($"Payment successful! Your change is: {change}");
+                                cart.Clear();
+                                totalCost = 0;
+                            }
+                            else
+                            {
+                                int amountDue = finalCost - paymentAmount;
+                                Console.WriteLine($"Insufficient payment. You still owe: {amountDue}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid payment amount.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Payment canceled. Returning to menu.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Your cart is empty. Nothing to checkout.");
+                }
+                Console.WriteLine("Press any key to continue.");
+                Console.ReadKey();
+            }
+        }
+    }
+}
